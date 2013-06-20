@@ -2,6 +2,7 @@ package com.sandbox.charts;
 
 import com.sandbox.charts.barClass;
 
+import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.Panel;
 import java.awt.Button;
@@ -66,7 +67,7 @@ public class ProcessingSketch extends Sandbox {
 				barGraph.resized(composite.getSize().x, composite.getSize().y);
 			}
 		});
-		
+
 		button.addActionListener(new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent event1)
@@ -147,10 +148,10 @@ public class ProcessingSketch extends Sandbox {
 		int len, maximum, widthOffset, widthOFbar, toMark, place, steps; //Variables I use throughout my program
 		int r,b,g;
 		String labelX, labelY;
-		
+
 		barClass[] bars;
 		String graph_title = "This is a bar graph"; 
-		
+
 		//default settings for X and Y size
 		int sizeX = 500;
 		int sizeY = 500;
@@ -240,7 +241,7 @@ public class ProcessingSketch extends Sandbox {
 			//setting the y-labels
 			while(counter <= toMark){
 				fill(255);
-				text(counter, 5, sizeY-40-counter*(sizeY-40)/toMark);
+				text(counter, 5, sizeY-20-counter*(sizeY-40)/toMark);
 				counter = counter+steps;
 			}
 		}
@@ -305,23 +306,24 @@ public class ProcessingSketch extends Sandbox {
 			//Adjusting the variables that specify the dimensions of the graph
 			sizeX = x - 20;
 			sizeY = y - 50;
-
 			//set the new size of the graph
 			size(sizeX,sizeY);
 			background(100);
+
 			//use the new sizes to work out the new bar widths
 			graphSetup();
 
 			createData(data);
+
 		}
-		
-		void myDelay(int ms)
+
+		public void myDelay(int ms)
 		{
-		   try
-		  {    
-		    Thread.sleep(ms);
-		  }
-		  catch(Exception e){}
+			try
+			{    
+				Thread.sleep(ms);
+			}
+			catch(Exception e){}
 		}
 
 		public void changeColour(){
@@ -353,13 +355,14 @@ public class ProcessingSketch extends Sandbox {
 		}
 
 		public void changeDataWithEffect(int input[], String newLabels[]){
+
 			flag = false;
-			data = input;
 			labels = newLabels;
 			int counter = 0; 
-			
-			
+			data = input;
+
 			while (counter < len){
+
 				counter = 0;
 				for(int i = 0; i < len; i++){
 					if(bars[i].getDataPoint() > input[i]){
