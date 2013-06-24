@@ -80,8 +80,9 @@ public class ProcessingSketch extends Sandbox{
 			@Override
 			public void actionPerformed(ActionEvent event2)
 			{
-				int data2[] = {100,200,300,400,500,600,700,800,900,1000,110}; 
-				barGraph.setFlag(data2);
+				int data2[] = {100,200,300,400,500,600,700,800,900,1000,1100}; 
+				barGraph.setData(data2);
+				barGraph.setFlag();
 			}
 		});
 
@@ -90,8 +91,9 @@ public class ProcessingSketch extends Sandbox{
 			@Override
 			public void actionPerformed(ActionEvent event2)
 			{
-				int data2[] = {1,2,3,4,5,6,7,8,90,100,110}; 
-				barGraph.setFlag(data2);
+				int data2[] = {1,2,3,4,5,6,7,8,9,10,11}; 
+				barGraph.setData(data2);
+				barGraph.setFlag();
 			}
 		});
 
@@ -99,8 +101,9 @@ public class ProcessingSketch extends Sandbox{
 			@Override
 			public void actionPerformed(ActionEvent event3)
 			{
-				int data2[] = {151,162,173,184,195,1106,117,128,190,100,110}; 
-				barGraph.setFlag(data2);
+				int data2[] = {10,20,30,40,50,60,70,80,90,100,110}; 
+				barGraph.setData(data2);
+				barGraph.setFlag();
 			}
 		});
 		
@@ -108,8 +111,9 @@ public class ProcessingSketch extends Sandbox{
 			@Override
 			public void actionPerformed(ActionEvent event3)
 			{
-				int data2[] = {151,162,173,184,195,1106,117,128,190,100,110, 6, 7, 8, 9, 2, 4, 6}; 
-				barGraph.setDynamicDataFlag(data2);
+				int data2[] = {10,20,30,40,50,60,70,80,90,100,110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250}; 
+				barGraph.setData(data2);
+				barGraph.setInterrupt();
 			}
 		});
 
@@ -366,12 +370,6 @@ public class ProcessingSketch extends Sandbox{
 			
 		}
 		
-		public void setDynamicDataFlag(int input[]){
-			flag = true;
-			interrupt = true;
-			inputData = input;
-		}
-
 		public void dynamicData(int input[]){
 			
 			for(int i = 0; i < len; i++){
@@ -454,18 +452,33 @@ public class ProcessingSketch extends Sandbox{
 		public void myDelay(int ms){
 			
 			try{    
-				Thread.sleep(ms);
+				Thread.sleep(ms);	//sleeps the current thread, pauses the drawing for a while
 			}
 			catch(Exception e){}
 		}
 
 		//Function used to interrupt the transition() function and supply it with the new data it needs to change to.
-		public void setFlag(int input[]){
+		public void setFlag(){
 			
-			inputData = input;//change the current data used in the transition to the new data
-			flag = true;//breaks the program out of the current loop of transitioning
-			transition(); //start a new transition
+			interrupt = false;	//breaks the program out of the current dynamicData() 
+			flag = true;	//breaks the program out of the current loop of transition()
+			transition();	//start a new transition
 		}
+		
+		//Function used to set the flag so that the current task can be stopped and the dynamic bar can be started
+		public void setInterrupt(){
+			
+			flag = true;	//Interrupts the transition() function if it is running
+			interrupt = true;	//sets the flag that allows the dynamicData() function to be called
+		}
+		
+		//Function used to change the data currently used to the data received from input
+		public void setData(int input[]){
+			
+			inputData = input;	//change the current data used to create the bars to the data received from input
+		}
+		
+		
 
 		//-----------------------------------------------------------------------------------------------------//
 		//						End of staticBarSketch class												   //
