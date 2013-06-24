@@ -56,7 +56,8 @@ public class ProcessingSketch extends Sandbox{
 		Button button = new Button("Data set 1");
 		Button button2 = new Button("Data set 2");
 		Button button3 = new Button("Data set 3");
-		Button button4 = new Button("Exit");
+		Button button4 = new Button("Dynamic Data");
+		Button button5 = new Button("Exit");
 
 		Panel panel = new Panel();
 		panel.add(barGraph);
@@ -64,6 +65,7 @@ public class ProcessingSketch extends Sandbox{
 		panel.add(button2);
 		panel.add(button3);
 		panel.add(button4);
+		panel.add(button5);
 		frame.add(panel);
 		barGraph.init();
 
@@ -103,6 +105,15 @@ public class ProcessingSketch extends Sandbox{
 		});
 		
 		button4.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent event3)
+			{
+				int data2[] = {151,162,173,184,195,1106,117,128,190,100,110, 6, 7, 8, 9, 2, 4, 6}; 
+				barGraph.setDynamicDataFlag(data2);
+			}
+		});
+
+		button5.addActionListener(new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent event3)
 			{
@@ -160,6 +171,7 @@ public class ProcessingSketch extends Sandbox{
 		String graph_title = "This is a bar graph"; 
 
 		int checking = 0;
+		int begin = 0;
 
 		//default settings for X and Y size
 		int sizeX = 500;
@@ -167,7 +179,6 @@ public class ProcessingSketch extends Sandbox{
 		boolean flag = true;
 		boolean interrupt = false;
 		int prevY;
-		PShape increment, decrement;
 
 		//----------------------------------------------------------------------------//
 		//		Functions that act like a main										  //
@@ -187,6 +198,13 @@ public class ProcessingSketch extends Sandbox{
 
 		public void draw() { 
 			if(flag == true){
+				if(interrupt == true){
+					dynamicData(inputData);
+					begin = begin+1;
+					graphSetup();
+					createData(data);
+				}
+				System.out.println("Draw ");
 				background(100);
 				//Display the axis and labels
 				displayGraph();
@@ -196,7 +214,7 @@ public class ProcessingSketch extends Sandbox{
 				changeColour();
 			}
 			else{
-				changeDataWithEffect();
+				transition();
 			}
 		}	
 		//----------------------------------------------------------------------------//
@@ -269,7 +287,7 @@ public class ProcessingSketch extends Sandbox{
 		public void displayData(){
 			for(int i = 0; i < len; i++){
 				rectMode(CORNER);
-				
+
 				beginShape();
 				stroke(255);
 				fill(0, 121, 184);
@@ -333,7 +351,7 @@ public class ProcessingSketch extends Sandbox{
 			graphSetup();
 
 			createData(data);
-			
+
 			if(flag==false){
 				background(100);
 				//Display the axis and labels
@@ -342,17 +360,31 @@ public class ProcessingSketch extends Sandbox{
 				displayData();
 			}
 		}
-
-		public void myDelay(int ms)
-		{
-			try
-			{    
-				Thread.sleep(ms);
-			}
-			catch(Exception e){}
+		public void stackedData(int input[][]){
+			
+			
+			
 		}
 		
-		public void dynamicData(){}
+		public void setDynamicDataFlag(int input[]){
+			flag = true;
+			interrupt = true;
+			inputData = input;
+		}
+
+		public void dynamicData(int input[]){
+			
+			for(int i = 0; i < len; i++){
+				data[i] = input[i+begin];
+			}
+			myDelay(1000);
+			
+			if(begin+len == input.length){
+				System.out.println("I reached the end");
+				interrupt = false;
+				begin = 0;
+			}	
+		}
 
 		public void changeColour(){
 			//returns the value of the data in the array that we are hovering over
@@ -376,22 +408,13 @@ public class ProcessingSketch extends Sandbox{
 			String txt =  labels[place] + ": " + bars[place].getDataPoint();
 			myDelay(1);
 			float labelW = textWidth(txt);
-
 			fill(0);
 			rect(mouseX+5, mouseY-25, labelW+10, 22);
 			fill(255);
 			text(txt, mouseX+10, mouseY-10);
 		}
 
-		public void setFlag(int input[]){
-		
-			inputData = input;
-			flag = true;
-			myDelay(5);
-			changeDataWithEffect();
-		}
-
-		public void changeDataWithEffect(){
+		public void transition(){
 
 			flag = false;
 			checking = 0;
@@ -420,9 +443,33 @@ public class ProcessingSketch extends Sandbox{
 				flag = true;
 			}
 		}
+
+
+		//-----------------------------------------------------------------------------------------------------//
+		//						Functions that is API v0 ready 												   //
+		//-----------------------------------------------------------------------------------------------------//
+
+
+		//Function provides a delay to be specified in milliseconds - sleeps the thread for an amount of time. 
+		public void myDelay(int ms){
+			
+			try{    
+				Thread.sleep(ms);
+			}
+			catch(Exception e){}
+		}
+
+		//Function used to interrupt the transition() function and supply it with the new data it needs to change to.
+		public void setFlag(int input[]){
+			
+			inputData = input;//change the current data used in the transition to the new data
+			flag = true;//breaks the program out of the current loop of transitioning
+			transition(); //start a new transition
+		}
+
+		//-----------------------------------------------------------------------------------------------------//
+		//						End of staticBarSketch class												   //
+		//-----------------------------------------------------------------------------------------------------//	
 	}
-	//-----------------------------------------------------------------------------------------------------//
-	//						End of staticBarSketch class												   //
-	//-----------------------------------------------------------------------------------------------------//	
 }
 
