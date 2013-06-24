@@ -9,6 +9,9 @@ import java.awt.Button;
 import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.swing.SwingUtilities;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.awt.SWT_AWT;
 import org.eclipse.swt.custom.CTabFolder;
@@ -36,12 +39,13 @@ import processing.core.PShape;
 //	The part of the program that handles the RCP part of the program		  //
 //----------------------------------------------------------------------------//
 
-public class ProcessingSketch extends Sandbox {
+public class ProcessingSketch extends Sandbox{
 	final static List<PApplet> applets = new ArrayList<PApplet>();
 	final static List<Composite> composites = new ArrayList<Composite>();
 
 	@Override
 	protected void createWindows(final Shell shell) throws Exception {
+
 		shell.setLayout(new FillLayout());
 
 		final Composite composite = new Composite(shell, SWT.EMBEDDED);
@@ -52,12 +56,14 @@ public class ProcessingSketch extends Sandbox {
 		Button button = new Button("Data set 1");
 		Button button2 = new Button("Data set 2");
 		Button button3 = new Button("Data set 3");
+		Button button4 = new Button("Exit");
 
 		Panel panel = new Panel();
 		panel.add(barGraph);
 		panel.add(button);
 		panel.add(button2);
 		panel.add(button3);
+		panel.add(button4);
 		frame.add(panel);
 		barGraph.init();
 
@@ -70,21 +76,20 @@ public class ProcessingSketch extends Sandbox {
 
 		button.addActionListener(new ActionListener(){
 			@Override
-			public void actionPerformed(ActionEvent event1)
+			public void actionPerformed(ActionEvent event2)
 			{
-				int data1[] = {1100,1000,900,800,700,600,500,400,300,200,100}; 
-				String labels2[] = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"};
-				barGraph.changeDataWithEffect(data1, labels2);
+				int data2[] = {100,200,300,400,500,600,700,800,900,1000,110}; 
+				barGraph.setFlag(data2);
 			}
 		});
+
 
 		button2.addActionListener(new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent event2)
 			{
-				int data2[] = {1,2,3,4,5,6,7,8,9,10,11}; 
-				String labels2[] ={"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"};
-				barGraph.changeDataWithEffect(data2, labels2);
+				int data2[] = {1,2,3,4,5,6,7,8,90,100,110}; 
+				barGraph.setFlag(data2);
 			}
 		});
 
@@ -92,18 +97,22 @@ public class ProcessingSketch extends Sandbox {
 			@Override
 			public void actionPerformed(ActionEvent event3)
 			{
-				int data3[] = {10,20,30,40,50,60,50,40,30,20,10};
-				String labels3[] = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"};
-				barGraph.changeDataWithEffect(data3, labels3);
+				int data2[] = {151,162,173,184,195,1106,117,128,190,100,110}; 
+				barGraph.setFlag(data2);
 			}
 		});
-
-
+		
+		button4.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent event3)
+			{
+				barGraph.stop();
+				System.exit(0);
+			}
+		});
 	}
 
 	public static void main(String[] args) throws InterruptedException {
-		System.out.println("Start");
-
 		new ProcessingSketch().run();
 
 		for (PApplet applet : applets) {
@@ -114,8 +123,6 @@ public class ProcessingSketch extends Sandbox {
 		for (Composite composite : composites) {
 			composite.dispose();
 		}
-
-		System.out.println("Stop");
 	}
 
 	//The part of the program that displays the graph in the RCP window
@@ -142,7 +149,7 @@ public class ProcessingSketch extends Sandbox {
 	public class StaticBarSketch extends PApplet {
 
 		int data[] = {100,200,300,400,500,600,700,800,900,1000,1100}; 
-		int oldData[];
+		int inputData[];
 		String labels[] = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"};
 
 		int len, maximum, widthOffset, widthOFbar, toMark, place, steps; //Variables I use throughout my program
@@ -152,10 +159,13 @@ public class ProcessingSketch extends Sandbox {
 		barClass[] bars;
 		String graph_title = "This is a bar graph"; 
 
+		int checking = 0;
+
 		//default settings for X and Y size
 		int sizeX = 500;
 		int sizeY = 500;
 		boolean flag = true;
+		boolean interrupt = false;
 		int prevY;
 		PShape increment, decrement;
 
@@ -175,14 +185,18 @@ public class ProcessingSketch extends Sandbox {
 			createData(data);
 		}
 
-		public void draw() {
+		public void draw() { 
 			if(flag == true){
+				background(100);
 				//Display the axis and labels
 				displayGraph();
 				//represent the data
 				displayData();
 				//Change colour of bar if mouse hovers over it
 				changeColour();
+			}
+			else{
+				changeDataWithEffect();
 			}
 		}	
 		//----------------------------------------------------------------------------//
@@ -255,10 +269,12 @@ public class ProcessingSketch extends Sandbox {
 		public void displayData(){
 			for(int i = 0; i < len; i++){
 				rectMode(CORNER);
+				
+				beginShape();
 				stroke(255);
 				fill(0, 121, 184);
 				rect(bars[i].getXpos(),bars[i].getYpos(),bars[i].getWidthOFbar(), bars[i].getHeightOFbar());
-				fill(255);
+				endShape();
 			}
 		}
 
@@ -308,13 +324,23 @@ public class ProcessingSketch extends Sandbox {
 			sizeY = y - 50;
 			//set the new size of the graph
 			size(sizeX,sizeY);
-			background(100);
+
+			for(int i = 0; i < len; i++){
+				data[i] = bars[i].getDataPoint();
+			}
 
 			//use the new sizes to work out the new bar widths
 			graphSetup();
 
 			createData(data);
-
+			
+			if(flag==false){
+				background(100);
+				//Display the axis and labels
+				displayGraph();
+				//represent the data
+				displayData();
+			}
 		}
 
 		public void myDelay(int ms)
@@ -325,6 +351,8 @@ public class ProcessingSketch extends Sandbox {
 			}
 			catch(Exception e){}
 		}
+		
+		public void dynamicData(){}
 
 		public void changeColour(){
 			//returns the value of the data in the array that we are hovering over
@@ -345,7 +373,8 @@ public class ProcessingSketch extends Sandbox {
 		public void showLabel(int place){
 
 			//creates the text for the label
-			String txt =  labels[place] + ": " + data[place];
+			String txt =  labels[place] + ": " + bars[place].getDataPoint();
+			myDelay(1);
 			float labelW = textWidth(txt);
 
 			fill(0);
@@ -354,38 +383,42 @@ public class ProcessingSketch extends Sandbox {
 			text(txt, mouseX+10, mouseY-10);
 		}
 
-		public void changeDataWithEffect(int input[], String newLabels[]){
+		public void setFlag(int input[]){
+		
+			inputData = input;
+			flag = true;
+			myDelay(5);
+			changeDataWithEffect();
+		}
+
+		public void changeDataWithEffect(){
 
 			flag = false;
-			labels = newLabels;
-			int counter = 0; 
-			data = input;
+			checking = 0;
 
-			while (counter < len){
-
-				counter = 0;
-				for(int i = 0; i < len; i++){
-					if(bars[i].getDataPoint() > input[i]){
-						prevY = bars[i].getYpos();
-						bars[i].setDataPoint(bars[i].getDataPoint() - 1);
-						bars[i].setYpos((sizeY-20 - bars[i].getDataPoint()*(sizeY-40)/toMark));
-						bars[i].setHeightOFbar((bars[i].getDataPoint()*(sizeY-40)/toMark));
-						buildingblocks(false, bars[i].getXpos(), bars[i].getYpos(), prevY, bars[i].getWidthOFbar(), bars[i].getHeightOFbar());
-					}
-					else if(bars[i].getDataPoint() < input[i]){
-						prevY = bars[i].getYpos();
-						bars[i].setDataPoint(bars[i].getDataPoint() + 1);
-						bars[i].setYpos((sizeY-20 - bars[i].getDataPoint()*(sizeY-40)/toMark));
-						bars[i].setHeightOFbar((bars[i].getDataPoint()*(sizeY-40)/toMark));
-						buildingblocks(true, bars[i].getXpos(), bars[i].getYpos(), prevY, bars[i].getWidthOFbar(), bars[i].getHeightOFbar());
-					}
-					else{
-						counter = counter+1;
-					}
+			for(int i = 0; i < len; i++){
+				if(bars[i].getDataPoint() > inputData[i]){
+					prevY = bars[i].getYpos();
+					bars[i].setDataPoint(bars[i].getDataPoint() - 1);
+					bars[i].setYpos((sizeY-20 - bars[i].getDataPoint()*(sizeY-40)/toMark));
+					bars[i].setHeightOFbar((bars[i].getDataPoint()*(sizeY-40)/toMark));
+					buildingblocks(false, bars[i].getXpos(), bars[i].getYpos(), prevY, bars[i].getWidthOFbar(), bars[i].getHeightOFbar());
 				}
-				myDelay(5);
+				else if(bars[i].getDataPoint() < inputData[i]){
+					prevY = bars[i].getYpos();
+					bars[i].setDataPoint(bars[i].getDataPoint() + 1);
+					bars[i].setYpos((sizeY-20 - bars[i].getDataPoint()*(sizeY-40)/toMark));
+					bars[i].setHeightOFbar((bars[i].getDataPoint()*(sizeY-40)/toMark));
+					buildingblocks(true, bars[i].getXpos(), bars[i].getYpos(), prevY, bars[i].getWidthOFbar(), bars[i].getHeightOFbar());
+				}
+				else{
+					checking = checking+1;
+				}
 			}
-			flag = true;
+
+			if(checking == len){
+				flag = true;
+			}
 		}
 	}
 	//-----------------------------------------------------------------------------------------------------//
