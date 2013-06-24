@@ -57,7 +57,8 @@ public class ProcessingSketch extends Sandbox{
 		Button button2 = new Button("Data set 2");
 		Button button3 = new Button("Data set 3");
 		Button button4 = new Button("Dynamic Data");
-		Button button5 = new Button("Exit");
+		Button button5 = new Button("Stacks");
+		Button button6 = new Button("Exit");
 
 		Panel panel = new Panel();
 		panel.add(barGraph);
@@ -66,6 +67,7 @@ public class ProcessingSketch extends Sandbox{
 		panel.add(button3);
 		panel.add(button4);
 		panel.add(button5);
+		panel.add(button6);
 		frame.add(panel);
 		barGraph.init();
 
@@ -106,7 +108,7 @@ public class ProcessingSketch extends Sandbox{
 				barGraph.setFlag();
 			}
 		});
-		
+
 		button4.addActionListener(new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent event3)
@@ -118,6 +120,17 @@ public class ProcessingSketch extends Sandbox{
 		});
 
 		button5.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent event3)
+			{
+				int data2[][] = {{10,20,30,40,50,60,70,80,90,100,110}, {120, 13, 140, 150, 16, 170, 180, 190, 20, 210, 220}, {120, 15, 15, 15, 15, 170, 180, 190, 200, 210, 220}}; 
+
+				barGraph.setStackFlag();
+				barGraph.stackedData(data2);
+			}
+		});
+
+		button6.addActionListener(new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent event3)
 			{
@@ -171,7 +184,7 @@ public class ProcessingSketch extends Sandbox{
 		int r,b,g;
 		String labelX, labelY;
 
-		barClass[] bars;
+		barClass[] bars1D, bars2D;
 		String graph_title = "This is a bar graph"; 
 
 		int checking = 0;
@@ -180,9 +193,12 @@ public class ProcessingSketch extends Sandbox{
 		//default settings for X and Y size
 		int sizeX = 500;
 		int sizeY = 500;
+		
 		boolean flag = true;
 		boolean interrupt = false;
+		boolean stacked = false;
 		int prevY;
+		int detMax = 0;
 
 		//----------------------------------------------------------------------------//
 		//		Functions that act like a main										  //
@@ -201,6 +217,7 @@ public class ProcessingSketch extends Sandbox{
 		}
 
 		public void draw() { 
+			if(stacked == false){
 			if(flag == true){
 				if(interrupt == true){
 					dynamicData(inputData);
@@ -208,7 +225,6 @@ public class ProcessingSketch extends Sandbox{
 					graphSetup();
 					createData(data);
 				}
-				System.out.println("Draw ");
 				background(100);
 				//Display the axis and labels
 				displayGraph();
@@ -219,6 +235,7 @@ public class ProcessingSketch extends Sandbox{
 			}
 			else{
 				transition();
+			}
 			}
 		}	
 		//----------------------------------------------------------------------------//
@@ -235,7 +252,7 @@ public class ProcessingSketch extends Sandbox{
 
 			//Determine the number of bars
 			len = data.length;
-			bars = new barClass[len];
+			bars1D = new barClass[len];
 		}
 
 		public void graphSetup(){
@@ -284,7 +301,7 @@ public class ProcessingSketch extends Sandbox{
 
 		public void createData(int data2[]){
 			for(int i = 0; i < len; i++){
-				bars[i] = new barClass((40 + i*widthOffset), (sizeY-20 - data2[i]*(sizeY-40)/toMark), (widthOFbar),(data2[i]*(sizeY-40)/toMark),data2[i]);
+				bars1D[i] = new barClass((40 + i*widthOffset), (sizeY-20 - data2[i]*(sizeY-40)/toMark), (widthOFbar),(data2[i]*(sizeY-40)/toMark),data2[i]);
 			}
 		}
 
@@ -295,7 +312,7 @@ public class ProcessingSketch extends Sandbox{
 				beginShape();
 				stroke(255);
 				fill(0, 121, 184);
-				rect(bars[i].getXpos(),bars[i].getYpos(),bars[i].getWidthOFbar(), bars[i].getHeightOFbar());
+				rect(bars1D[i].getXpos(),bars1D[i].getYpos(),bars1D[i].getWidthOFbar(), bars1D[i].getHeightOFbar());
 				endShape();
 			}
 		}
@@ -348,7 +365,7 @@ public class ProcessingSketch extends Sandbox{
 			size(sizeX,sizeY);
 
 			for(int i = 0; i < len; i++){
-				data[i] = bars[i].getDataPoint();
+				data[i] = bars1D[i].getDataPoint();
 			}
 
 			//use the new sizes to work out the new bar widths
@@ -364,21 +381,60 @@ public class ProcessingSketch extends Sandbox{
 				displayData();
 			}
 		}
-		public void stackedData(int input[][]){
-			
-			
-			
+		
+		public void create2DData(int data2[], int startPlace, int size){
+			for(int i = 0; i < size; i++){
+				if(startPlace == 0){
+					bars2D[i] = new barClass((40 + i*widthOffset), (sizeY-20 - data2[i]*(sizeY-40)/toMark), (widthOFbar),(data2[i]*(sizeY-40)/toMark),data2[i]);
+				}
+				else{
+					prevY = bars2D[i+((startPlace-1)*size)].getHeightOFbar();
+					bars2D[i+(startPlace*size)] = new barClass((40 + i*widthOffset), (sizeY-20 - ((data2[i])*(sizeY-40)/toMark + prevY)), (widthOFbar),(data2[i]*(sizeY-40)/toMark),data2[i]);	
+				}
+			}
 		}
 		
-		public void dynamicData(int input[]){
+		public void display2Ddata(int startPlace, int size){
+			for(int i = 0; i < size; i++){
+				rectMode(CORNER);
+
+				beginShape();
+				stroke(255);
+				fill(20*startPlace, 121, 184-(30*startPlace));
+				rect(bars2D[startPlace*size+i].getXpos(),bars2D[startPlace*size+i].getYpos(),bars2D[startPlace*size + i].getWidthOFbar(), bars2D[startPlace*size + i].getHeightOFbar());
+				endShape();
+			}
+		}
+
+		public void stackedData(int input[][]){
+			int numberOFstacks = input.length;	
+			detMax = 0;
+
+			for(int i = 0; i < numberOFstacks; i++){
+				getMax(input[i]);
+				detMax = detMax + maximum;
+			}
+			maximum = detMax;
+			bars2D = new barClass[(len*numberOFstacks)];
+			graphSetup();
+			displayGraph();
 			
+			for(int i = 0; i < numberOFstacks; i++){
+				int indivLen = input[0].length;
+				create2DData(input[i], i, indivLen);
+				display2Ddata(i, indivLen);
+			}	
+		}
+
+		public void dynamicData(int input[]){
+
 			for(int i = 0; i < len; i++){
 				data[i] = input[i+begin];
 			}
-			myDelay(1000);
 			
+			myDelay(500);
+
 			if(begin+len == input.length){
-				System.out.println("I reached the end");
 				interrupt = false;
 				begin = 0;
 			}	
@@ -390,10 +446,10 @@ public class ProcessingSketch extends Sandbox{
 
 			//avoiding an out of bounds exception by checking if the value is inside the size of the array
 			if(place < len){
-				if((mouseY > bars[place].getYpos())&&(mouseY < sizeY-20)){
+				if((mouseY > bars1D[place].getYpos())&&(mouseY < sizeY-20)){
 					//draws a rectangle precisely where the other one was, except in another colour, giving the illusion of highlighting
 					fill(0, 100, 184);
-					rect(bars[place].getXpos(),bars[place].getYpos(),bars[place].getWidthOFbar(), bars[place].getHeightOFbar());
+					rect(bars1D[place].getXpos(),bars1D[place].getYpos(),bars1D[place].getWidthOFbar(), bars1D[place].getHeightOFbar());
 					//shows the label with the more exact data to be found in the array
 					showLabel(place);
 				}
@@ -403,8 +459,7 @@ public class ProcessingSketch extends Sandbox{
 		public void showLabel(int place){
 
 			//creates the text for the label
-			String txt =  labels[place] + ": " + bars[place].getDataPoint();
-			myDelay(1);
+			String txt =  labels[place] + ": " + bars1D[place].getDataPoint();
 			float labelW = textWidth(txt);
 			fill(0);
 			rect(mouseX+5, mouseY-25, labelW+10, 22);
@@ -418,25 +473,24 @@ public class ProcessingSketch extends Sandbox{
 			checking = 0;
 
 			for(int i = 0; i < len; i++){
-				if(bars[i].getDataPoint() > inputData[i]){
-					prevY = bars[i].getYpos();
-					bars[i].setDataPoint(bars[i].getDataPoint() - 1);
-					bars[i].setYpos((sizeY-20 - bars[i].getDataPoint()*(sizeY-40)/toMark));
-					bars[i].setHeightOFbar((bars[i].getDataPoint()*(sizeY-40)/toMark));
-					buildingblocks(false, bars[i].getXpos(), bars[i].getYpos(), prevY, bars[i].getWidthOFbar(), bars[i].getHeightOFbar());
+				if(bars1D[i].getDataPoint() > inputData[i]){
+					prevY = bars1D[i].getYpos();
+					bars1D[i].setDataPoint(bars1D[i].getDataPoint() - 1);
+					bars1D[i].setYpos((sizeY-20 - bars1D[i].getDataPoint()*(sizeY-40)/toMark));
+					bars1D[i].setHeightOFbar((bars1D[i].getDataPoint()*(sizeY-40)/toMark));
+					buildingblocks(false, bars1D[i].getXpos(), bars1D[i].getYpos(), prevY, bars1D[i].getWidthOFbar(), bars1D[i].getHeightOFbar());
 				}
-				else if(bars[i].getDataPoint() < inputData[i]){
-					prevY = bars[i].getYpos();
-					bars[i].setDataPoint(bars[i].getDataPoint() + 1);
-					bars[i].setYpos((sizeY-20 - bars[i].getDataPoint()*(sizeY-40)/toMark));
-					bars[i].setHeightOFbar((bars[i].getDataPoint()*(sizeY-40)/toMark));
-					buildingblocks(true, bars[i].getXpos(), bars[i].getYpos(), prevY, bars[i].getWidthOFbar(), bars[i].getHeightOFbar());
+				else if(bars1D[i].getDataPoint() < inputData[i]){
+					prevY = bars1D[i].getYpos();
+					bars1D[i].setDataPoint(bars1D[i].getDataPoint() + 1);
+					bars1D[i].setYpos((sizeY-20 - bars1D[i].getDataPoint()*(sizeY-40)/toMark));
+					bars1D[i].setHeightOFbar((bars1D[i].getDataPoint()*(sizeY-40)/toMark));
+					buildingblocks(true, bars1D[i].getXpos(), bars1D[i].getYpos(), prevY, bars1D[i].getWidthOFbar(), bars1D[i].getHeightOFbar());
 				}
 				else{
 					checking = checking+1;
 				}
 			}
-
 			if(checking == len){
 				flag = true;
 			}
@@ -450,7 +504,7 @@ public class ProcessingSketch extends Sandbox{
 
 		//Function provides a delay to be specified in milliseconds - sleeps the thread for an amount of time. 
 		public void myDelay(int ms){
-			
+
 			try{    
 				Thread.sleep(ms);	//sleeps the current thread, pauses the drawing for a while
 			}
@@ -459,26 +513,34 @@ public class ProcessingSketch extends Sandbox{
 
 		//Function used to interrupt the transition() function and supply it with the new data it needs to change to.
 		public void setFlag(){
-			
+
+			stacked = false;	//Interrupt to signal the program to stop drawing a stacked graph
 			interrupt = false;	//breaks the program out of the current dynamicData() 
-			flag = true;	//breaks the program out of the current loop of transition()
-			transition();	//start a new transition
+			flag = true;		//breaks the program out of the current loop of transition()
+			transition();		//start a new transition
 		}
-		
+
 		//Function used to set the flag so that the current task can be stopped and the dynamic bar can be started
 		public void setInterrupt(){
-			
-			flag = true;	//Interrupts the transition() function if it is running
+
+			stacked = false;	//Interrupt to signal the program to stop drawing a stacked graph
+			flag = true;		//Interrupts the transition() function if it is running
 			interrupt = true;	//sets the flag that allows the dynamicData() function to be called
 		}
-		
+
+		//Function that sets the flags so that a stacked graph can be drawn
+		public void setStackFlag(){
+			
+			stacked = true;		//Interrupt to signal the program to draw a stacked graph
+			flag = true;		//Interrupts the transition() function if it is running
+			interrupt = false;	//breaks the program out of the current dynamicData() 
+		}
+
 		//Function used to change the data currently used to the data received from input
 		public void setData(int input[]){
-			
+
 			inputData = input;	//change the current data used to create the bars to the data received from input
 		}
-		
-		
 
 		//-----------------------------------------------------------------------------------------------------//
 		//						End of staticBarSketch class												   //
