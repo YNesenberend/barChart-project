@@ -1,10 +1,11 @@
 package com.sandbox.charts;
-import processing.core.*;
 
 class barClass{
 
 	int xPos, yPos, width, height, dataPoint;
-
+//----------------------------------------------------------------------------//
+//								Constructor									  //
+//----------------------------------------------------------------------------//
 	barClass(int xPos_, int yPos_, int width_, int height_, int dataPoint_){
 		xPos = xPos_;
 		yPos = yPos_;
@@ -13,6 +14,10 @@ class barClass{
 		dataPoint = dataPoint_;
 	}
 
+//----------------------------------------------------------------------------//
+//								Get functions								  //
+//----------------------------------------------------------------------------//
+	
 	int getXpos() {
 		return xPos;
 	}
@@ -32,6 +37,9 @@ class barClass{
 	int getDataPoint(){
 		return dataPoint;
 	}
+//----------------------------------------------------------------------------//
+//								set functions								  //
+//----------------------------------------------------------------------------//
 	
 	void setYpos(int yPos_) {
 		yPos = yPos_;

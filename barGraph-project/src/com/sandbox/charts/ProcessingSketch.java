@@ -2,7 +2,7 @@ package com.sandbox.charts;
 
 import com.sandbox.charts.barClass;
 
-import java.awt.EventQueue;
+import java.awt.Color;
 import java.awt.Frame;
 import java.awt.Panel;
 import java.awt.Button;
@@ -10,30 +10,15 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.SwingUtilities;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.awt.SWT_AWT;
-import org.eclipse.swt.custom.CTabFolder;
-import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Tracker;
-import org.eclipse.swt.widgets.Control;
-import org.gicentre.utils.stat.BarChart;
-import org.gicentre.utils.stat.XYChart;
-import org.gwoptics.graphics.graph2D.Graph2D;
-import org.gwoptics.graphics.graph2D.traces.ILine2DEquation;
-import org.gwoptics.graphics.graph2D.traces.RollingLine2DTrace;
 
 import processing.core.PApplet;
-import processing.core.PFont;
-import processing.core.PShape;
 
 //----------------------------------------------------------------------------//
 //	The part of the program that handles the RCP part of the program		  //
@@ -45,11 +30,9 @@ public class ProcessingSketch extends Sandbox{
 
 	@Override
 	protected void createWindows(final Shell shell) throws Exception {
-
-		shell.setLayout(new FillLayout());
+		shell.setLayout(new FillLayout());	
 
 		final Composite composite = new Composite(shell, SWT.EMBEDDED);
-
 		final Frame frame = SWT_AWT.new_Frame(composite); 
 		final StaticBarSketch barGraph = new StaticBarSketch();
 
@@ -61,6 +44,7 @@ public class ProcessingSketch extends Sandbox{
 		Button button6 = new Button("Exit");
 
 		Panel panel = new Panel();
+		panel.setBackground(Color.gray);
 		panel.add(barGraph);
 		panel.add(button);
 		panel.add(button2);
@@ -71,10 +55,25 @@ public class ProcessingSketch extends Sandbox{
 		frame.add(panel);
 		barGraph.init();
 
+
 		composite.addListener(SWT.Resize, new Listener() {
 			@Override
 			public void handleEvent(Event event) {
-				barGraph.resized(composite.getSize().x, composite.getSize().y);
+				boolean conti = false;
+				try{
+					while(conti == false){
+						conti = barGraph.setResized(composite.getSize().x, composite.getSize().y);
+					}
+				}catch(Exception e){
+					System.out.print(e);
+				}
+			}
+		});
+
+		composite.addListener(SWT.Dispose, new Listener() {
+			@Override
+			public void handleEvent(Event event) {
+				barGraph.stop();
 			}
 		});
 
@@ -82,20 +81,23 @@ public class ProcessingSketch extends Sandbox{
 			@Override
 			public void actionPerformed(ActionEvent event2)
 			{
-				int data2[] = {100,200,300,400,500,600,700,800,900,1000,1100}; 
-				barGraph.setData(data2);
-				barGraph.setFlag();
+				boolean conti = false;
+				int data2[] = {100,200,30,40,50,60,70,80,90,100,110}; 
+				barGraph.setTitle("Maximum changed");
+				while(conti == false){
+					conti = barGraph.setFlag(data2);}
 			}
 		});
-
 
 		button2.addActionListener(new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent event2)
 			{
+				boolean conti = false;
 				int data2[] = {1,2,3,4,5,6,7,8,9,10,11}; 
-				barGraph.setData(data2);
-				barGraph.setFlag();
+				while(conti == false){
+					conti = barGraph.setFlag(data2);}
+
 			}
 		});
 
@@ -103,9 +105,10 @@ public class ProcessingSketch extends Sandbox{
 			@Override
 			public void actionPerformed(ActionEvent event3)
 			{
+				boolean conti = false;
 				int data2[] = {10,20,30,40,50,60,70,80,90,100,110}; 
-				barGraph.setData(data2);
-				barGraph.setFlag();
+				while(conti == false){
+					conti = barGraph.setFlag(data2);}
 			}
 		});
 
@@ -113,9 +116,8 @@ public class ProcessingSketch extends Sandbox{
 			@Override
 			public void actionPerformed(ActionEvent event3)
 			{
-				int data2[] = {10,20,30,40,50,60,70,80,90,100,110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250}; 
-				barGraph.setData(data2);
-				barGraph.setInterrupt();
+				int data2[] = {10,20,30,40,50,60,70,80,90,100,110, 120, 130, 1100, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250}; 
+				barGraph.setInterrupt(data2);
 			}
 		});
 
@@ -124,9 +126,8 @@ public class ProcessingSketch extends Sandbox{
 			public void actionPerformed(ActionEvent event3)
 			{
 				int data2[][] = {{10,20,30,40,50,60,70,80,90,100,110}, {120, 13, 140, 150, 16, 170, 180, 190, 20, 210, 220}, {120, 15, 15, 15, 15, 170, 180, 190, 200, 210, 220}}; 
-
 				barGraph.setStackFlag();
-				barGraph.stackedData(data2);
+				//barGraph.stackedData(data2);
 			}
 		});
 
@@ -153,39 +154,19 @@ public class ProcessingSketch extends Sandbox{
 		}
 	}
 
-	//The part of the program that displays the graph in the RCP window
-
-	/*List of things that need to be altered from outside the library
-	 *	Grid size of the graph (X and Y dimensions)
-	 * 	Colour of the Graphs
-	 * 
-	 * 	Labels - passed as an array
-	 * 	Title - passed as a string
-	 * 	Data - Passed as an array
-	 * 
-	 * 	Text size
-	 * 	Text colour
-	 * 
-	 * 	toMark
-	 * 	Step sizes
-	 * 
-	 */
-
 	//----------------------------------------------------------------------------//
 	//	Start of the StaticBarSketch class										  //
 	//----------------------------------------------------------------------------//		
 	public class StaticBarSketch extends PApplet {
 
-		int data[] = {100,200,300,400,500,600,700,800,900,1000,1100}; 
-		int inputData[];
-		String labels[] = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"};
+		private static final long serialVersionUID = 1L;
 
-		int len, maximum, widthOffset, widthOFbar, toMark, place, steps; //Variables I use throughout my program
+		int place;
+
 		int r,b,g;
-		String labelX, labelY;
 
 		barClass[] bars1D, bars2D;
-		String graph_title = "This is a bar graph"; 
+		graphClass graph;
 
 		int checking = 0;
 		int begin = 0;
@@ -193,10 +174,8 @@ public class ProcessingSketch extends Sandbox{
 		//default settings for X and Y size
 		int sizeX = 500;
 		int sizeY = 500;
-		
-		boolean flag = true;
-		boolean interrupt = false;
-		boolean stacked = false;
+		boolean change = false;
+
 		int prevY;
 		int detMax = 0;
 
@@ -204,111 +183,47 @@ public class ProcessingSketch extends Sandbox{
 		//		Functions that act like a main										  //
 		//----------------------------------------------------------------------------//		
 		public void setup() {
-			//size and colour of the background
-			size(sizeX, sizeY); 
-			//function to determine the maximum data point
-			getMax(data);
-			//function to determine the number of data points
-			getNumberDatapoints(data);
 
-			graphSetup();
+			size(sizeX, sizeY); 							//setting the size of the background
+			
+			graph = new graphClass(data, sizeX, sizeY);		//creating a graph object
+			bars1D = new barClass[graph.getLen()+1];		//creating an array of bar objects
 
-			createData(data);
+			createData(data);								//filling the bars with data
 		}
 
 		public void draw() { 
+			change = false;
+
 			if(stacked == false){
-			if(flag == true){
-				if(interrupt == true){
-					dynamicData(inputData);
-					begin = begin+1;
-					graphSetup();
-					createData(data);
+				if(flag == true){
+					if(interrupt == true){
+						dynamicData(data);
+						begin = begin+1;
+						displayGraph();
+						createData(data);
+					}
+					background(100);
+					//Display the axis and labels
+					displayGraph();
+					//represent the data
+					displayData();
+					//Change colour of bar if mouse hovers over it
+					changeColour();
 				}
-				background(100);
-				//Display the axis and labels
-				displayGraph();
-				//represent the data
-				displayData();
-				//Change colour of bar if mouse hovers over it
-				changeColour();
+				else{
+					transition();
+				}
 			}
-			else{
-				transition();
-			}
-			}
+			change = true;
 		}	
+
 		//----------------------------------------------------------------------------//
 		//		Functions used to set up what the graph will look like				  //
 		//----------------------------------------------------------------------------//
-
-		public void getMax(int data2[]){
-
-			//Maximum value of the data points, used to scale the sizes of the bars 
-			maximum = max(data2);	
-		}
-
-		public void getNumberDatapoints(int data2[]){
-
-			//Determine the number of bars
-			len = data.length;
-			bars1D = new barClass[len];
-		}
-
-		public void graphSetup(){
-
-			//determining the maximum y-label
-			toMark = ceil((float) maximum/10)*10;
-			if(toMark == maximum){
-				toMark = toMark/10 + toMark;
-			}
-
-			//determine the step size of the y-labels
-			steps = floor((float) toMark/100)*10;
-			if(steps == 0){
-				steps = toMark/10;
-			}
-
-			//width and spacing of the bars
-			widthOffset = (sizeX - 40)/len;
-			widthOFbar = widthOffset*8/10;
-		}
-
-		public void displayGraph(){
-			int counter = 0;
-			background(100);
-			stroke(255);
-			//outlines of the graph
-			line(40, 20, 40, sizeY-20);
-			line(40, sizeY-20, sizeX-20, sizeY-20);
-
-			//setting the text size and colour
-			textSize(10);
-
-			//drawing the graph
-			for(int i = 0; i < len; i++){
-				fill(255);
-				text(labels[i], 40 + floor(widthOFbar/2) + i*widthOffset, sizeY-5);
-			}
-
-			//setting the y-labels
-			while(counter <= toMark){
-				fill(255);
-				text(counter, 5, sizeY-20-counter*(sizeY-40)/toMark);
-				counter = counter+steps;
-			}
-		}
-
-		public void createData(int data2[]){
-			for(int i = 0; i < len; i++){
-				bars1D[i] = new barClass((40 + i*widthOffset), (sizeY-20 - data2[i]*(sizeY-40)/toMark), (widthOFbar),(data2[i]*(sizeY-40)/toMark),data2[i]);
-			}
-		}
-
 		public void displayData(){
-			for(int i = 0; i < len; i++){
+			for(int i = 0; i < graph.getLen(); i++){
 				rectMode(CORNER);
-
 				beginShape();
 				stroke(255);
 				fill(0, 121, 184);
@@ -317,38 +232,27 @@ public class ProcessingSketch extends Sandbox{
 			}
 		}
 
-		public void buildingblocks(boolean type, int xPos, int yPos, int previousY, int width_, int height){
+		public void changingMax(){
 
-			if(type == true){
-				noStroke();
-				fill(0, 121, 184);
-				rect(xPos, previousY, width_, abs(previousY-yPos));
-				stroke(255);
-				beginShape();
-				if(previousY == (sizeY-20)){
-					vertex(xPos + width_, previousY);
-				}
-				vertex(xPos, previousY);
-				vertex(xPos, yPos);
-				vertex(xPos + width_, yPos);
-				vertex(xPos + width_, previousY);
-				endShape();
+			for(int i = 0 ; i < graph.getLen(); i++){
+				bars1D[i].setHeightOFbar((bars1D[i].getDataPoint()*(graph.getSizeY()-40)/graph.getToMark()));
+				bars1D[i].setYpos((sizeY-20 - bars1D[i].getDataPoint()*(graph.getSizeY()-40)/graph.getToMark()));
 			}
-			else{
-				fill(100);
+
+			displayGraph();
+			displayData();
+		}
+
+		public void decayData(){
+			for(int i = 0; i < graph.getLen(); i++){
+				rectMode(CORNER);
 				stroke(100);
-				rect(xPos, previousY, width_, abs(previousY-yPos));
-				if(xPos == 40){
-					stroke(255);
-					beginShape();
-					vertex(xPos, previousY);
-					vertex(xPos, yPos);
-					vertex(xPos+width_,yPos);
-					endShape();	
+				fill(100);
+				if(bars1D[i].getXpos()==40){
+					rect(bars1D[i].getXpos()+1,20 ,bars1D[i].getWidthOFbar()-1,abs(20-bars1D[i].getYpos()));
 				}
 				else{
-					stroke(255);
-					line(xPos, yPos, xPos+width_,yPos);
+					rect(bars1D[i].getXpos(),20 ,bars1D[i].getWidthOFbar(),abs(20-bars1D[i].getYpos()));
 				}
 			}
 		}
@@ -356,44 +260,44 @@ public class ProcessingSketch extends Sandbox{
 		//-----------------------------------------------------------------------------------------------------//
 		//		Functions that changes the effects of the graph when the mouse hovers						   //
 		//-----------------------------------------------------------------------------------------------------//	
-		public void resized(int x, int y) {
 
+		public void resized(int x, int y) {
 			//Adjusting the variables that specify the dimensions of the graph
 			sizeX = x - 20;
 			sizeY = y - 50;
-			//set the new size of the graph
-			size(sizeX,sizeY);
 
-			for(int i = 0; i < len; i++){
+			graph.setSizeX(sizeX);
+			graph.setSizeY(sizeY);
+
+			for(int i = 0; i < graph.getLen(); i++){
 				data[i] = bars1D[i].getDataPoint();
 			}
 
-			//use the new sizes to work out the new bar widths
-			graphSetup();
-
 			createData(data);
+			//set the new size of the graph	
+
+			size(sizeX,sizeY);	
 
 			if(flag==false){
-				background(100);
 				//Display the axis and labels
 				displayGraph();
 				//represent the data
 				displayData();
-			}
+			}	
 		}
-		
+
 		public void create2DData(int data2[], int startPlace, int size){
 			for(int i = 0; i < size; i++){
 				if(startPlace == 0){
-					bars2D[i] = new barClass((40 + i*widthOffset), (sizeY-20 - data2[i]*(sizeY-40)/toMark), (widthOFbar),(data2[i]*(sizeY-40)/toMark),data2[i]);
+					bars2D[i] = new barClass((40 + i*graph.getWidthOffset()), (sizeY-20 - data2[i]*(graph.getSizeY()-40)/graph.getToMark()), graph.getWidthOfBar(),(data2[i]*(graph.getSizeY()-40)/graph.getToMark()),data2[i]);
 				}
 				else{
 					prevY = bars2D[i+((startPlace-1)*size)].getHeightOFbar();
-					bars2D[i+(startPlace*size)] = new barClass((40 + i*widthOffset), (sizeY-20 - ((data2[i])*(sizeY-40)/toMark + prevY)), (widthOFbar),(data2[i]*(sizeY-40)/toMark),data2[i]);	
+					bars2D[i+(startPlace*size)] = new barClass((40 + i*graph.getWidthOffset()), (sizeY-20 - ((data2[i])*(graph.getSizeY()-40)/graph.getToMark() + prevY)),graph.getWidthOfBar(),(data2[i]*(graph.getSizeY()-40)/graph.getToMark()),data2[i]);	
 				}
 			}
 		}
-		
+
 		public void display2Ddata(int startPlace, int size){
 			for(int i = 0; i < size; i++){
 				rectMode(CORNER);
@@ -405,7 +309,7 @@ public class ProcessingSketch extends Sandbox{
 				endShape();
 			}
 		}
-
+		/*
 		public void stackedData(int input[][]){
 			int numberOFstacks = input.length;	
 			detMax = 0;
@@ -418,37 +322,36 @@ public class ProcessingSketch extends Sandbox{
 			bars2D = new barClass[(len*numberOFstacks)];
 			graphSetup();
 			displayGraph();
-			
+
 			for(int i = 0; i < numberOFstacks; i++){
 				int indivLen = input[0].length;
 				create2DData(input[i], i, indivLen);
 				display2Ddata(i, indivLen);
 			}	
 		}
-
+		 */
 		public void dynamicData(int input[]){
 
-			for(int i = 0; i < len; i++){
+			for(int i = 0; i < graph.getLen(); i++){
 				data[i] = input[i+begin];
 			}
-			
-			myDelay(500);
 
-			if(begin+len == input.length){
+			myDelay(250);
+
+			if(begin + graph.getLen() == input.length){
 				interrupt = false;
 				begin = 0;
 			}	
 		}
 
 		public void changeColour(){
-			//returns the value of the data in the array that we are hovering over
-			place = round((mouseX-20)/widthOffset);
+			place = round((mouseX-20)/graph.getWidthOffset());//returns the value of the data in the array that we are hovering over
 
 			//avoiding an out of bounds exception by checking if the value is inside the size of the array
-			if(place < len){
+			if(place < graph.getLen()){
 				if((mouseY > bars1D[place].getYpos())&&(mouseY < sizeY-20)){
 					//draws a rectangle precisely where the other one was, except in another colour, giving the illusion of highlighting
-					fill(0, 100, 184);
+					fill(0, 150, 184);
 					rect(bars1D[place].getXpos(),bars1D[place].getYpos(),bars1D[place].getWidthOFbar(), bars1D[place].getHeightOFbar());
 					//shows the label with the more exact data to be found in the array
 					showLabel(place);
@@ -458,8 +361,7 @@ public class ProcessingSketch extends Sandbox{
 
 		public void showLabel(int place){
 
-			//creates the text for the label
-			String txt =  labels[place] + ": " + bars1D[place].getDataPoint();
+			String txt =  labelX[place] + ": " + bars1D[place].getDataPoint();
 			float labelW = textWidth(txt);
 			fill(0);
 			rect(mouseX+5, mouseY-25, labelW+10, 22);
@@ -472,35 +374,39 @@ public class ProcessingSketch extends Sandbox{
 			flag = false;
 			checking = 0;
 
-			for(int i = 0; i < len; i++){
+			for(int i = 0; i < graph.getLen(); i++){
 				if(bars1D[i].getDataPoint() > inputData[i]){
 					prevY = bars1D[i].getYpos();
 					bars1D[i].setDataPoint(bars1D[i].getDataPoint() - 1);
-					bars1D[i].setYpos((sizeY-20 - bars1D[i].getDataPoint()*(sizeY-40)/toMark));
-					bars1D[i].setHeightOFbar((bars1D[i].getDataPoint()*(sizeY-40)/toMark));
-					buildingblocks(false, bars1D[i].getXpos(), bars1D[i].getYpos(), prevY, bars1D[i].getWidthOFbar(), bars1D[i].getHeightOFbar());
+					bars1D[i].setYpos((sizeY-20 - bars1D[i].getDataPoint()*(graph.getSizeY()-40)/graph.getToMark()));
+					bars1D[i].setHeightOFbar((bars1D[i].getDataPoint()*(graph.getSizeY()-40)/graph.getToMark()));
+					decayData();
+					displayData();
 				}
 				else if(bars1D[i].getDataPoint() < inputData[i]){
 					prevY = bars1D[i].getYpos();
 					bars1D[i].setDataPoint(bars1D[i].getDataPoint() + 1);
-					bars1D[i].setYpos((sizeY-20 - bars1D[i].getDataPoint()*(sizeY-40)/toMark));
-					bars1D[i].setHeightOFbar((bars1D[i].getDataPoint()*(sizeY-40)/toMark));
-					buildingblocks(true, bars1D[i].getXpos(), bars1D[i].getYpos(), prevY, bars1D[i].getWidthOFbar(), bars1D[i].getHeightOFbar());
+					bars1D[i].setYpos((sizeY-20 - bars1D[i].getDataPoint()*(graph.getSizeY()-40)/graph.getToMark()));
+					bars1D[i].setHeightOFbar((bars1D[i].getDataPoint()*(graph.getSizeY()-40)/graph.getToMark()));
+					displayData();
 				}
 				else{
 					checking = checking+1;
 				}
 			}
-			if(checking == len){
+			if(checking == graph.getLen()){
 				flag = true;
 			}
 		}
 
 
 		//-----------------------------------------------------------------------------------------------------//
-		//						Functions that is API v0 ready 												   //
+		//								Functions that is API v0 ready 										   //
 		//-----------------------------------------------------------------------------------------------------//
 
+		//-----------------------------------------------------------------------------------------------------//
+		//										Delays		 												   //
+		//-----------------------------------------------------------------------------------------------------//
 
 		//Function provides a delay to be specified in milliseconds - sleeps the thread for an amount of time. 
 		public void myDelay(int ms){
@@ -511,39 +417,163 @@ public class ProcessingSketch extends Sandbox{
 			catch(Exception e){}
 		}
 
-		//Function used to interrupt the transition() function and supply it with the new data it needs to change to.
-		public void setFlag(){
+		//-----------------------------------------------------------------------------------------------------//
+		//									Setting of flags												   //
+		//-----------------------------------------------------------------------------------------------------//
 
-			stacked = false;	//Interrupt to signal the program to stop drawing a stacked graph
-			interrupt = false;	//breaks the program out of the current dynamicData() 
-			flag = true;		//breaks the program out of the current loop of transition()
-			transition();		//start a new transition
+		boolean flag = true;		//sets default to normal drawing mode
+		boolean interrupt = false;	//disables the interrupt used for animations in normal drawing mode
+		boolean stacked = false;	//disables the stacked drawing mode by default
+
+		//Function used to interrupt the transition() function and supply it with the new data it needs to change to.
+		public boolean setFlag(int newData[]){
+			if (change != true){
+				return false;
+			}
+			else{
+				noLoop();
+				stacked = false;		//Interrupt to signal the program to stop drawing a stacked graph
+				interrupt = false;		//breaks the program out of the current dynamicData() 
+				flag = true;			//breaks the program out of the current loop of transition()
+				setData(newData);
+				transition();			//start a new transition
+				loop();
+				return true;
+			}
+		}
+
+		public boolean setResized(int x, int y){
+			if (change != true){
+				return false;
+			}
+			else{
+				noLoop();
+				try{
+					resized(x, y);
+				}catch(Exception e){
+					System.out.print(e);
+				}
+				loop();
+				return true;
+			}
 		}
 
 		//Function used to set the flag so that the current task can be stopped and the dynamic bar can be started
-		public void setInterrupt(){
-
-			stacked = false;	//Interrupt to signal the program to stop drawing a stacked graph
-			flag = true;		//Interrupts the transition() function if it is running
-			interrupt = true;	//sets the flag that allows the dynamicData() function to be called
+		public boolean setInterrupt(int newData[]){
+			if (change != true){
+				return false;
+			}
+			else{
+				noLoop();
+				stacked = false;		//Interrupt to signal the program to stop drawing a stacked graph
+				flag = true;			//Interrupts the transition() function if it is running
+				interrupt = true;		//sets the flag that allows the dynamicData() function to be called
+				setData(newData);
+				loop();
+				return true;
+			}
 		}
 
 		//Function that sets the flags so that a stacked graph can be drawn
-		public void setStackFlag(){
-			
-			stacked = true;		//Interrupt to signal the program to draw a stacked graph
-			flag = true;		//Interrupts the transition() function if it is running
-			interrupt = false;	//breaks the program out of the current dynamicData() 
+		public boolean setStackFlag(){
+			if (change != true){
+				return false;
+			}
+			else{
+				noLoop();
+				stacked = true;			//Interrupt to signal the program to draw a stacked graph
+				flag = true;			//Interrupts the transition() function if it is running
+				interrupt = false;		//breaks the program out of the current dynamicData() 
+				loop();
+				return true;
+			}
 		}
+
+		//-----------------------------------------------------------------------------------------------------//
+		//									Setting data													   //
+		//-----------------------------------------------------------------------------------------------------//
+		int data[] = {10,20,30,40,50,60,70,80,90,100,110}; 		//Variable used to store the input data
+		int inputData[];
+		int maximum;
 
 		//Function used to change the data currently used to the data received from input
 		public void setData(int input[]){
 
-			inputData = input;	//change the current data used to create the bars to the data received from input
+			inputData = input;										//change the current data used to create the bars to the data received from input
+
+			maximum = max(inputData);								//getting the maximum of the new set of data,
+			if(maximum > graph.getToMark()){						//and checking if it is more than the current maximum mark.
+				graph.setMax(maximum);
+				changingMax();
+			}
+		}
+
+		//Function used to assign the values gotten from the input to the array of bar objects
+		public void createData(int data2[]){
+			
+			for(int i = 0; i < graph.getLen(); i++){
+				bars1D[i] = new barClass((40 + i*graph.getWidthOffset()), (sizeY-20 - data2[i]*(graph.getSizeY()-40)/graph.getToMark()),graph.getWidthOfBar(),(data2[i]*(graph.getSizeY()-40)/graph.getToMark()),data2[i]);
+			}
 		}
 
 		//-----------------------------------------------------------------------------------------------------//
-		//						End of staticBarSketch class												   //
+		//									Setting up the Graph											   //
+		//-----------------------------------------------------------------------------------------------------//
+		String labelX[] = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"}; 	//x-labels
+		String graph_title = "This is a bar graph";				//title of the graph
+		int counter;
+		float txtSize;
+
+		//Function used to set the title of the graph
+		public void setTitle(String title_){
+			graph_title = title_; 
+		}
+
+		//Function used to set the x-labels
+		public void setLabel(String labelX_[]){
+			labelX = labelX_; 
+		}
+
+		//Function that draws what the graph will look like
+		public void displayGraph(){
+			background(100);
+			counter = 0;
+
+			textSize(20);											//heading size
+			fill(255);												//heading colour
+			txtSize = textWidth(graph_title);
+			text(graph_title, (graph.getSizeX()/2-txtSize/2), 20);	//graph_title
+
+			textSize(10);											//setting the text size
+			stroke(255);											//line colour
+
+			line(40, sizeY-20, 40, 20);
+			line(40, sizeY-20, sizeX-20, sizeY-20);					//draw the axis
+
+			for(int i = 0; i < graph.getLen(); i++){
+				fill(255);
+				text(labelX[i], 40 + floor(graph.getWidthOfBar()/2) + i*graph.getWidthOffset(), sizeY-5);	//display the labels
+			}
+
+			while(counter <= graph.getToMark()){
+				fill(255);
+				text(counter, 5, sizeY-20-(counter*(graph.getSizeY()-40)/graph.getToMark())); 				//display the y-labels
+				counter = counter + graph.getSteps();
+			}
+		}
+		//-----------------------------------------------------------------------------------------------------//
+		//									Drawing a normal Graph											   //
+		//-----------------------------------------------------------------------------------------------------//
+
+		//-----------------------------------------------------------------------------------------------------//
+		//									Fluid transitioning												   //
+		//-----------------------------------------------------------------------------------------------------//
+		//-----------------------------------------------------------------------------------------------------//
+		//									Stacked Graph													   //
+		//-----------------------------------------------------------------------------------------------------//
+
+		//-----------------------------------------------------------------------------------------------------//
+		//								End of staticBarSketch class										   //
 		//-----------------------------------------------------------------------------------------------------//	
 	}
 }
