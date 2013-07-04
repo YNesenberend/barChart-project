@@ -145,9 +145,12 @@ public class ProcessingSketch extends Sandbox{
 			@Override
 			public void actionPerformed(ActionEvent event3)
 			{
-				int data2[][] = {{10,20,30,40,50,60,70,80,90,100,110}, {120, 13, 140, 150, 16, 170, 180, 190, 20, 210, 220}, {120, 15, 15, 15, 15, 170, 180, 190, 200, 210, 220}}; 
-				barGraph.setStackFlag();
-				//barGraph.stackedData(data2);
+				boolean conti = false;
+				int data2[][] = {{10,120,30,40,50,60,70,80,90,100,110}, {120, 13, 14, 150, 16, 170, 180, 190, 20, 210, 22}, {120, 15, 150, 15, 15, 170, 180, 190, 200, 210, 220}}; 
+				barGraph.setTitle("And last but not least, stacked data");
+				while(conti == false){
+					conti = barGraph.setStackFlag(data2);
+				}
 			}
 		});
 
@@ -224,6 +227,8 @@ public class ProcessingSketch extends Sandbox{
 			createData(data, graph.getLen());				//filling the bars with data
 		}
 
+		int count2D = 0;
+
 		public void draw() { 
 			change = false;
 
@@ -245,54 +250,48 @@ public class ProcessingSketch extends Sandbox{
 					transition();
 				}
 			}
+			else{
+				if(startingPoint < numberOFstacks){
+					growing2Ddata();
+				}
+			}
 			change = true;
 		}	
 
-		/*
-		public void create2DData(int data2[], int startPlace, int size){
-			for(int i = 0; i < size; i++){
-				if(startPlace == 0){
-					bars2D[i] = new barClass((40 + i*graph.getWidthOffset()), (sizeY-20 - data2[i]*(graph.getSizeY()-40)/graph.getToMark()), graph.getWidthOfBar(),(data2[i]*(graph.getSizeY()-40)/graph.getToMark()),data2[i]);
+		int layer;
+
+		public void change2DColour(){
+			place = round((mouseX-20)/graph.getWidthOffset());//returns the value of the data in the array that we are hovering over
+
+			//avoiding an out of bounds exception by checking if the value is inside the size of the array
+			if(place < graph.getLen()){
+				if((mouseY < sizeY-20)&&(bars2D[place].getYpos() < mouseY)){
+					layer = 0;
 				}
-				else{
-					prevY = bars2D[i+((startPlace-1)*size)].getHeightOFbar();
-					bars2D[i+(startPlace*size)] = new barClass((40 + i*graph.getWidthOffset()), (sizeY-20 - ((data2[i])*(graph.getSizeY()-40)/graph.getToMark() + prevY)),graph.getWidthOfBar(),(data2[i]*(graph.getSizeY()-40)/graph.getToMark()),data2[i]);	
+				else if((bars2D[place+graph.getLen()].getYpos() < mouseY)&&(bars2D[place].getYpos() > mouseY)){
+					layer = 1;
 				}
+				else if((bars2D[place+2*graph.getLen()].getYpos() < mouseY)&&(bars2D[place+graph.getLen()].getYpos() > mouseY)){
+					layer = 2;
+				}
+				//draws a rectangle precisely where the other one was, except in another colour, giving the illusion of highlighting
+				fill(0, 150, 184);
+				rect(bars2D[place+layer*graph.getLen()].getXpos(),bars2D[place+layer*graph.getLen()].getYpos(),bars2D[place+layer*graph.getLen()].getWidthOFbar(), bars2D[place+layer*graph.getLen()].getHeightOFbar());
+				//shows the label with the more exact data to be found in the array
+				show2DLabel(place, layer);
 			}
 		}
 
-		public void display2Ddata(int startPlace, int size){
-			for(int i = 0; i < size; i++){
-				rectMode(CORNER);
 
-				beginShape();
-				stroke(255);
-				fill(20*startPlace, 121, 184-(30*startPlace));
-				rect(bars2D[startPlace*size+i].getXpos(),bars2D[startPlace*size+i].getYpos(),bars2D[startPlace*size + i].getWidthOFbar(), bars2D[startPlace*size + i].getHeightOFbar());
-				endShape();
-			}
+		public void show2DLabel(int place_, int layer){
+
+			String txt =  labelX[place_] + ": Layer " + layer + ":"+ bars2D[place_+layer*graph.getLen()].getDataPoint();
+			float labelW = textWidth(txt);
+			fill(0);
+			rect(mouseX+5, mouseY-25, labelW+10, 22);
+			fill(255);
+			text(txt, mouseX+10, mouseY-10);
 		}
-
-		public void stackedData(int input[][]){
-			int numberOFstacks = input.length;	
-			detMax = 0;
-
-			for(int i = 0; i < numberOFstacks; i++){
-				getMax(input[i]);
-				detMax = detMax + maximum;
-			}
-			maximum = detMax;
-			bars2D = new barClass[(len*numberOFstacks)];
-			graphSetup();
-			displayGraph();
-
-			for(int i = 0; i < numberOFstacks; i++){
-				int indivLen = input[0].length;
-				create2DData(input[i], i, indivLen);
-				display2Ddata(i, indivLen);
-			}	
-		}
-		 */
 
 		//-----------------------------------------------------------------------------------------------------//
 		//								Functions that is API v0 ready 										   //
@@ -387,7 +386,7 @@ public class ProcessingSketch extends Sandbox{
 		}
 
 		//Function that sets the flags so that a stacked graph can be drawn
-		public boolean setStackFlag(){
+		public boolean setStackFlag(int newData[][]){
 			if (change != true){
 				return false;
 			}
@@ -396,6 +395,7 @@ public class ProcessingSketch extends Sandbox{
 				stacked = true;			//Interrupt to signal the program to draw a stacked graph
 				flag = true;			//Interrupts the transition() function if it is running
 				interrupt = false;		//breaks the program out of the current dynamicData() 
+				stackedData(newData);
 				loop();
 				return true;
 			}
@@ -694,6 +694,70 @@ public class ProcessingSketch extends Sandbox{
 		//-----------------------------------------------------------------------------------------------------//
 		//									Stacked Graph													   //
 		//-----------------------------------------------------------------------------------------------------//
+		int numberOFstacks;
+		int startingPoint;
+
+		public void stackedData(int input[][]){
+			numberOFstacks = input.length;	
+			startingPoint = 0;
+			int numbers[] = new int[graph.getLen()];
+
+
+			for(int i = 0; i < numberOFstacks; i++){
+				for(int j = 0; j < graph.getLen(); j++){
+					numbers[j] = numbers[j]+input[i][j];
+				}
+			}
+			int getMax = max(numbers);
+			bars2D = new barClass[(graph.getLen()*numberOFstacks)];
+			graph.setMax(getMax);
+			displayGraph();
+
+			for(int i = 0; i < numberOFstacks; i++){
+				create2DData(input[i], i, graph.getLen());
+				display2Ddata(i, graph.getLen());
+			}	
+		}
+
+		public void create2DData(int data2[], int startPlace, int size){
+			for(int i = 0; i < size; i++){
+				if(startPlace == 0){
+					bars2D[i] = new barClass((40 + i*graph.getWidthOffset()), (sizeY-20 - data2[i]*(graph.getSizeY()-40)/graph.getToMark()), 0,(data2[i]*(graph.getSizeY()-40)/graph.getToMark()),data2[i]);
+				}
+				else{
+					prevY = bars2D[i+((startPlace-1)*size)].getYpos();
+					bars2D[i+(startPlace*size)] = new barClass((40 + i*graph.getWidthOffset()),  prevY -(data2[i])*(graph.getSizeY()-40)/graph.getToMark(),0,(data2[i]*(graph.getSizeY()-40)/graph.getToMark()),data2[i]);	
+				}
+			}
+		}
+
+		public void display2Ddata(int startPlace, int size){
+			for(int i = 0; i < size; i++){
+				rectMode(CORNER);
+
+				beginShape();
+				stroke(255);
+				if((bars2D[startPlace*size + i].getWidthOFbar()==0)&&(bars2D[startPlace*size+i].getXpos() != 40)){
+				stroke(100);	
+				}
+				fill(20*startPlace, 121-(20*startPlace), 184-(30*startPlace));
+				rect(bars2D[startPlace*size+i].getXpos(),bars2D[startPlace*size+i].getYpos(),bars2D[startPlace*size + i].getWidthOFbar(), bars2D[startPlace*size + i].getHeightOFbar());
+				endShape();
+			}
+		}
+
+		public void growing2Ddata(){
+
+			for(int i = 0; i < graph.getLen(); i++){
+				if(bars2D[i+startingPoint*graph.getLen()].getWidthOFbar() < graph.getWidthOfBar()){
+					bars2D[i+startingPoint*graph.getLen()].setWidth(bars2D[i+startingPoint*graph.getLen()].getWidthOFbar()+1);
+				}
+				else if(startingPoint < numberOFstacks-1){
+					startingPoint++;
+				}
+			}
+			display2Ddata(startingPoint, graph.getLen());
+		}
 
 		//-----------------------------------------------------------------------------------------------------//
 		//									Special effects													   //
